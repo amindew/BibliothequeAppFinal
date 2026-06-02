@@ -6,6 +6,7 @@
     android:layout_height="match_parent">
 
     <LinearLayout
+
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -28,6 +29,25 @@
             android:textSize="22sp"
             android:textStyle="bold"
             android:layout_marginBottom="24dp" />
+
+        <!-- Aperçu de la couverture -->
+        <ImageView
+            android:id="@+id/imgApercuCouverture"
+            android:layout_width="100dp"
+            android:layout_height="130dp"
+            android:layout_gravity="center"
+            android:scaleType="centerCrop"
+            android:layout_marginBottom="8dp"
+            android:src="@mipmap/ic_launcher"/>
+
+        <Button
+            android:id="@+id/btnChoisirImage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="Choisir une couverture"
+            android:backgroundTint="#7C3AED"
+            android:layout_marginBottom="24dp"/>
 
         <EditText
             android:id="@+id/etTitre"
@@ -53,6 +73,14 @@
             android:inputType="text"
             android:layout_marginBottom="16dp" />
 
+        <EditText
+            android:id="@+id/etAnneePublication"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:hint="Année de publication"
+            android:inputType="number" />
+
         <Switch
             android:id="@+id/switchDisponible"
             android:layout_width="wrap_content"
@@ -65,7 +93,8 @@
             android:id="@+id/btnEnregistrer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Enregistrer" />
+            android:text="Enregistrer"
+            android:backgroundTint="#7C3AED"/>
 
     </LinearLayout>
 

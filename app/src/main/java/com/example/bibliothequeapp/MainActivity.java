@@ -2,6 +2,11 @@ package com.example.bibliothequeapp;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -22,6 +27,8 @@ public class MainActivity extends AppCompatActivity {
 
     private RecyclerView recyclerViewLivres;
     private FloatingActionButton fabAjouterLivre;
+    private TextView tvListeVide;
+    private EditText etRecherche;
 
     private LivreAdapter livreAdapter;
     private List<Livre> listeLivres;
@@ -30,19 +37,23 @@ public class MainActivity extends AppCompatActivity {
     private ExecutorService executorService;
 
     private ActivityResultLauncher<Intent> addEditLauncher;
+    private ActivityResultLauncher<Intent> detailLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        if (getSupportActionBar() != null) getSupportActionBar().hide();
+
         recyclerViewLivres = findViewById(R.id.recyclerViewLivres);
-        fabAjouterLivre = findViewById(R.id.fabAjouterLivre);
+        fabAjouterLivre    = findViewById(R.id.fabAjouterLivre);
+        tvListeVide        = findViewById(R.id.tvListeVide);
+        etRecherche        = findViewById(R.id.etRecherche);
 
-        database = AppDatabase.getInstance(this);
+        database        = AppDatabase.getInstance(this);
         executorService = Executors.newSingleThreadExecutor();
-
-        listeLivres = new ArrayList<>();
+        listeLivres     = new ArrayList<>();
 
         livreAdapter = new LivreAdapter(listeLivres, new LivreAdapter.OnLivreClickListener() {
             @Override
@@ -51,118 +62,126 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onLivreLongClick(Livre livre, int position) {
-                afficherOptionsLivre(livre);
+            public void onModifierClick(Livre livre, int position) {
+                ouvrirFormulaireModification(livre);
+            }
+
+            @Override
+            public void onSupprimerClick(Livre livre, int position) {
+                confirmerSuppression(livre, position);
             }
         });
 
         recyclerViewLivres.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewLivres.setAdapter(livreAdapter);
 
-        initialiserActivityResultLauncher();
-
+        initialiserLaunchers();
         fabAjouterLivre.setOnClickListener(v -> ouvrirFormulaireAjout());
-
+        initialiserRecherche();
         chargerLivresDepuisRoom();
     }
 
-    private void initialiserActivityResultLauncher() {
+    private void initialiserLaunchers() {
+
+        // Launcher Ajout / Modification — Room déjà sauvegardé dans AddEditActivity
         addEditLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
-                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                        Intent data = result.getData();
-                        Livre livre = (Livre) data.getSerializableExtra(AddEditActivity.EXTRA_LIVRE);
-                        String mode = data.getStringExtra(AddEditActivity.EXTRA_MODE);
-
-                        if (livre == null) return;
-
-                        if (AddEditActivity.MODE_ADD.equals(mode)) {
-                            ajouterLivreDansRoom(livre);
-                        } else if (AddEditActivity.MODE_EDIT.equals(mode)) {
-                            modifierLivreDansRoom(livre);
-                        }
+                    if (result.getResultCode() == RESULT_OK) {
+                        chargerLivresDepuisRoom();
+                        Toast.makeText(this, "Livre enregistré ✓", Toast.LENGTH_SHORT).show();
                     }
                 }
         );
+
+        // Launcher DetailActivity — recharge si modification ou suppression
+        detailLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK) {
+                        chargerLivresDepuisRoom();
+                    }
+                }
+        );
+    }
+
+    private void initialiserRecherche() {
+        etRecherche.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String motCle = s.toString().trim();
+                if (motCle.isEmpty()) chargerLivresDepuisRoom();
+                else rechercherLivres(motCle);
+            }
+            @Override public void afterTextChanged(Editable s) {}
+        });
+    }
+
+    private void rechercherLivres(String motCle) {
+        executorService.execute(() -> {
+            List<Livre> resultats = database.livreDao().rechercherParTitre(motCle);
+            runOnUiThread(() -> {
+                livreAdapter.mettreAJourListe(resultats);
+                mettreAJourListeVide();
+            });
+        });
     }
 
     private void chargerLivresDepuisRoom() {
         executorService.execute(() -> {
             List<Livre> livresDepuisBase = database.livreDao().getAllLivres();
             runOnUiThread(() -> {
-                listeLivres.clear();
-                listeLivres.addAll(livresDepuisBase);
-                livreAdapter.notifyDataSetChanged();
+                livreAdapter.mettreAJourListe(livresDepuisBase);
+                mettreAJourListeVide();
             });
         });
     }
 
-    private void ajouterLivreDansRoom(Livre livre) {
-        executorService.execute(() -> {
-            livre.setId(0);
-            database.livreDao().insert(livre);
-            runOnUiThread(() -> {
-                Toast.makeText(this, "Livre ajouté", Toast.LENGTH_SHORT).show();
-                chargerLivresDepuisRoom();
-            });
-        });
+    private void mettreAJourListeVide() {
+        if (listeLivres.isEmpty()) {
+            tvListeVide.setVisibility(View.VISIBLE);
+            recyclerViewLivres.setVisibility(View.GONE);
+        } else {
+            tvListeVide.setVisibility(View.GONE);
+            recyclerViewLivres.setVisibility(View.VISIBLE);
+        }
     }
 
-    private void modifierLivreDansRoom(Livre livre) {
-        executorService.execute(() -> {
-            database.livreDao().update(livre);
-            runOnUiThread(() -> {
-                Toast.makeText(this, "Livre modifié", Toast.LENGTH_SHORT).show();
-                chargerLivresDepuisRoom();
-            });
-        });
-    }
-
-    private void supprimerLivreDansRoom(Livre livre) {
+    private void supprimerLivreDansRoom(Livre livre, int position) {
         executorService.execute(() -> {
             database.livreDao().delete(livre);
             runOnUiThread(() -> {
+                livreAdapter.supprimerLivre(position);
+                mettreAJourListeVide();
                 Toast.makeText(this, "Livre supprimé", Toast.LENGTH_SHORT).show();
-                chargerLivresDepuisRoom();
             });
         });
     }
 
     private void ouvrirFormulaireAjout() {
-        Intent intent = new Intent(MainActivity.this, AddEditActivity.class);
+        Intent intent = new Intent(this, AddEditActivity.class);
         intent.putExtra(AddEditActivity.EXTRA_MODE, AddEditActivity.MODE_ADD);
         addEditLauncher.launch(intent);
     }
 
     private void ouvrirFormulaireModification(Livre livre) {
-        Intent intent = new Intent(MainActivity.this, AddEditActivity.class);
+        Intent intent = new Intent(this, AddEditActivity.class);
         intent.putExtra(AddEditActivity.EXTRA_MODE, AddEditActivity.MODE_EDIT);
         intent.putExtra(AddEditActivity.EXTRA_LIVRE, livre);
         addEditLauncher.launch(intent);
     }
 
     private void ouvrirDetailLivre(Livre livre) {
-        Intent intent = new Intent(MainActivity.this, DetailActivity.class);
+        Intent intent = new Intent(this, DetailActivity.class);
         intent.putExtra("livre", livre);
-        startActivity(intent);
+        detailLauncher.launch(intent);
     }
 
-    private void afficherOptionsLivre(Livre livre) {
-        String[] options = {"Modifier", "Supprimer"};
+    private void confirmerSuppression(Livre livre, int position) {
         new AlertDialog.Builder(this)
-                .setTitle(livre.getTitre())
-                .setItems(options, (dialog, which) -> {
-                    if (which == 0) ouvrirFormulaireModification(livre);
-                    else confirmerSuppression(livre);
-                }).show();
-    }
-
-    private void confirmerSuppression(Livre livre) {
-        new AlertDialog.Builder(this)
-                .setTitle("Supprimer le livre")
-                .setMessage("Voulez-vous vraiment supprimer ce livre ?")
-                .setPositiveButton("Supprimer", (dialog, which) -> supprimerLivreDansRoom(livre))
+                .setTitle("Supprimer « " + livre.getTitre() + " » ?")
+                .setMessage("Cette action est irréversible.")
+                .setPositiveButton("Supprimer", (d, w) -> supprimerLivreDansRoom(livre, position))
                 .setNegativeButton("Annuler", null)
                 .show();
     }

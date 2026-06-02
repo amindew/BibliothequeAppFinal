@@ -3,13 +3,14 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#FFFFFF">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="20dp">
 
         <ImageButton
             android:id="@+id/btnRetour"
@@ -18,14 +19,26 @@
             android:src="@drawable/baseline_arrow_back_24"
             android:backgroundTint="#7C3AED"
             app:tint="#FFFFFF"
-            android:layout_marginBottom="20dp"/>
+            android:contentDescription="Retour"
+            android:layout_marginBottom="20dp" />
+
+        <!-- Couverture -->
+        <ImageView
+            android:id="@+id/imgCouvertureDetail"
+            android:layout_width="150dp"
+            android:layout_height="200dp"
+            android:layout_gravity="center"
+            android:scaleType="centerCrop"
+            android:layout_marginBottom="20dp"
+            android:src="@mipmap/ic_launcher" />
 
         <TextView
             android:id="@+id/tvTitre"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="22sp"
+            android:textSize="24sp"
             android:textStyle="bold"
+            android:textColor="#1A0533"
             android:layout_marginBottom="12dp"
             android:text="Titre" />
 
@@ -33,7 +46,8 @@
             android:id="@+id/tvAuteur"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="18sp"
+            android:textSize="16sp"
+            android:textColor="#6C3FC5"
             android:layout_marginBottom="8dp"
             android:text="Auteur" />
 
@@ -41,15 +55,31 @@
             android:id="@+id/tvIsbn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="16sp"
+            android:textSize="14sp"
+            android:textColor="#9E9E9E"
             android:layout_marginBottom="8dp"
             android:text="ISBN" />
+
+        <!--
+            CORRECTION bug 5 : tvAnneePublication déplacé ICI,
+            dans le bloc des informations, avant tvDisponibilite.
+            Il était après les boutons dans l'ancienne version.
+        -->
+        <TextView
+            android:id="@+id/tvAnneePublication"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:textColor="#9E9E9E"
+            android:layout_marginBottom="8dp"
+            android:text="" />
 
         <TextView
             android:id="@+id/tvDisponibilite"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="16sp"
+            android:textSize="14sp"
+            android:layout_marginBottom="32dp"
             android:text="Disponible" />
 
         <Button
@@ -58,8 +88,14 @@
             android:layout_height="wrap_content"
             android:text="Modifier ce livre"
             android:backgroundTint="#7C3AED"
-            android:textColor="#FFFFFF"
-            android:layout_marginTop="24dp"/>
+            android:layout_marginBottom="12dp" />
+
+        <Button
+            android:id="@+id/btnSupprimer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Supprimer ce livre"
+            android:backgroundTint="#C62828" />
 
     </LinearLayout>
 

@@ -1,9 +1,11 @@
 package com.example.bibliothequeapp;
 
-import android.graphics.Color;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -15,7 +17,8 @@ public class LivreAdapter extends RecyclerView.Adapter<LivreAdapter.LivreViewHol
 
     public interface OnLivreClickListener {
         void onLivreClick(Livre livre);
-        void onLivreLongClick(Livre livre, int position);
+        void onModifierClick(Livre livre, int position);
+        void onSupprimerClick(Livre livre, int position);
     }
 
     private List<Livre> listeLivres;
@@ -23,7 +26,7 @@ public class LivreAdapter extends RecyclerView.Adapter<LivreAdapter.LivreViewHol
 
     public LivreAdapter(List<Livre> listeLivres, OnLivreClickListener listener) {
         this.listeLivres = listeLivres;
-        this.listener = listener;
+        this.listener    = listener;
     }
 
     @NonNull
@@ -42,47 +45,104 @@ public class LivreAdapter extends RecyclerView.Adapter<LivreAdapter.LivreViewHol
         holder.tvAuteurLivre.setText("Auteur : " + livre.getAuteur());
         holder.tvIsbnLivre.setText("ISBN : " + livre.getIsbn());
 
-        if (livre.isDisponible()) {
-            holder.tvDisponibilite.setText("Disponible");
-            holder.tvDisponibilite.setBackgroundColor(Color.parseColor("#2E7D32"));
+        // Année (cachée si non renseignée)
+        if (livre.getAnneePublication() > 0) {
+            holder.tvAnneeLivre.setVisibility(View.VISIBLE);
+            holder.tvAnneeLivre.setText("Année : " + livre.getAnneePublication());
         } else {
-            holder.tvDisponibilite.setText("Indisponible");
-            holder.tvDisponibilite.setBackgroundColor(Color.parseColor("#C62828"));
+            holder.tvAnneeLivre.setVisibility(View.GONE);
         }
 
+        // ✅ Logo de l'appli par défaut si aucune couverture choisie
+        if (livre.getImageUri() != null && !livre.getImageUri().isEmpty()) {
+            holder.imgCouverture.setImageURI(Uri.parse(livre.getImageUri()));
+        } else {
+            holder.imgCouverture.setImageResource(R.drawable.mon_logoo);
+        }
+
+        // Badge disponibilité
+        if (livre.isDisponible()) {
+            holder.tvDisponibilite.setText("Disponible");
+            holder.tvDisponibilite.setBackgroundResource(R.drawable.badge_arrondi);
+            holder.tvDisponibilite.setBackgroundTintList(
+                    android.content.res.ColorStateList.valueOf(
+                            android.graphics.Color.parseColor("#2E7D32")));
+        } else {
+            holder.tvDisponibilite.setText("Indisponible");
+            holder.tvDisponibilite.setBackgroundResource(R.drawable.badge_arrondi);
+            holder.tvDisponibilite.setBackgroundTintList(
+                    android.content.res.ColorStateList.valueOf(
+                            android.graphics.Color.parseColor("#C62828")));
+        }
+
+        // Clic carte → détail
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) listener.onLivreClick(livre);
         });
 
-        holder.itemView.setOnLongClickListener(v -> {
+        // Icône ✏️ modifier
+        holder.btnModifier.setOnClickListener(v -> {
             if (listener != null) {
-                int currentPosition = holder.getAdapterPosition();
-                if (currentPosition != RecyclerView.NO_POSITION) {
-                    listener.onLivreLongClick(livre, currentPosition);
-                }
+                int pos = holder.getAdapterPosition();
+                if (pos != RecyclerView.NO_POSITION)
+                    listener.onModifierClick(livre, pos);
             }
-            return true;
+        });
+
+        // Icône 🗑️ supprimer
+        holder.btnSupprimer.setOnClickListener(v -> {
+            if (listener != null) {
+                int pos = holder.getAdapterPosition();
+                if (pos != RecyclerView.NO_POSITION)
+                    listener.onSupprimerClick(livre, pos);
+            }
         });
     }
 
     @Override
-    public int getItemCount() {
-        return listeLivres.size();
+    public int getItemCount() { return listeLivres.size(); }
+
+    // ── Mises à jour granulaires ──────────────────────────────────────
+
+    public void ajouterLivre(Livre livre) {
+        listeLivres.add(0, livre);
+        notifyItemInserted(0);
     }
+
+    public void modifierLivre(Livre livre, int position) {
+        listeLivres.set(position, livre);
+        notifyItemChanged(position);
+    }
+
+    public void supprimerLivre(int position) {
+        listeLivres.remove(position);
+        notifyItemRemoved(position);
+    }
+
+    public void mettreAJourListe(List<Livre> nouvelleListe) {
+        listeLivres.clear();
+        listeLivres.addAll(nouvelleListe);
+        notifyDataSetChanged();
+    }
+
+    // ── ViewHolder ────────────────────────────────────────────────────
 
     public static class LivreViewHolder extends RecyclerView.ViewHolder {
 
-        TextView tvTitreLivre;
-        TextView tvAuteurLivre;
-        TextView tvIsbnLivre;
-        TextView tvDisponibilite;
+        TextView  tvTitreLivre, tvAuteurLivre, tvIsbnLivre, tvDisponibilite, tvAnneeLivre;
+        ImageView imgCouverture;
+        ImageButton btnModifier, btnSupprimer;
 
         public LivreViewHolder(@NonNull View itemView) {
             super(itemView);
-            tvTitreLivre = itemView.findViewById(R.id.tvTitreLivre);
-            tvAuteurLivre = itemView.findViewById(R.id.tvAuteurLivre);
-            tvIsbnLivre = itemView.findViewById(R.id.tvIsbnLivre);
+            tvTitreLivre    = itemView.findViewById(R.id.tvTitreLivre);
+            tvAuteurLivre   = itemView.findViewById(R.id.tvAuteurLivre);
+            tvIsbnLivre     = itemView.findViewById(R.id.tvIsbnLivre);
             tvDisponibilite = itemView.findViewById(R.id.tvDisponibilite);
+            tvAnneeLivre    = itemView.findViewById(R.id.tvAnneeLivre);
+            imgCouverture   = itemView.findViewById(R.id.mon_logoo);
+            btnModifier     = itemView.findViewById(R.id.btnModifierItem);
+            btnSupprimer    = itemView.findViewById(R.id.btnSupprimerItem);
         }
     }
 }

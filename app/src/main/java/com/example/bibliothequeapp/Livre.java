@@ -1,8 +1,9 @@
 package com.example.bibliothequeapp;
 
-import java.io.Serializable;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
+
+import java.io.Serializable;
 
 @Entity(tableName = "livres")
 public class Livre implements Serializable {
@@ -13,15 +14,18 @@ public class Livre implements Serializable {
     private String auteur;
     private String isbn;
     private boolean disponible;
-    private int image;
+    private String imageUri;
+    private int anneePublication; // ← nouveau champ
 
-    public Livre(int id, String titre, String auteur, String isbn, boolean disponible, int image) {
+    public Livre(int id, String titre, String auteur, String isbn,
+                 boolean disponible, String imageUri, int anneePublication) {
         this.id = id;
         this.titre = titre;
         this.auteur = auteur;
         this.isbn = isbn;
         this.disponible = disponible;
-        this.image = image;
+        this.imageUri = imageUri;
+        this.anneePublication = anneePublication;
     }
 
     public int getId() { return id; }
@@ -36,8 +40,12 @@ public class Livre implements Serializable {
     public String getIsbn() { return isbn; }
     public void setIsbn(String isbn) { this.isbn = isbn; }
 
-    public int getImage() { return image; }
-
     public boolean isDisponible() { return disponible; }
     public void setDisponible(boolean disponible) { this.disponible = disponible; }
+
+    public String getImageUri() { return imageUri; }
+    public void setImageUri(String imageUri) { this.imageUri = imageUri; }
+
+    public int getAnneePublication() { return anneePublication; }
+    public void setAnneePublication(int anneePublication) { this.anneePublication = anneePublication; }
 }

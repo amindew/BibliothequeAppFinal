@@ -23,6 +23,10 @@ public interface LivreDao {
     @Query("SELECT * FROM livres ORDER BY id DESC")
     List<Livre> getAllLivres();
 
+    // Recherche par titre (insensible à la casse grâce à LIKE)
+    @Query("SELECT * FROM livres WHERE titre LIKE '%' || :motCle || '%' ORDER BY id DESC")
+    List<Livre> rechercherParTitre(String motCle);
+
     @Query("DELETE FROM livres")
     void deleteAll();
 }

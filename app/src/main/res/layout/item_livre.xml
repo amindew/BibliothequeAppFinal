@@ -15,18 +15,19 @@
         android:orientation="horizontal"
         android:padding="16dp">
 
-        <!-- Icône livre -->
+        <!-- Couverture -->
         <ImageView
-            android:id="@+id/imgCouverture"
+            android:id="@+id/mon_logoo"
             android:layout_width="60dp"
             android:layout_height="80dp"
-            android:scaleType="centerCrop"
-            android:layout_marginEnd="16dp"/>
+            android:layout_marginEnd="16dp"
+            android:scaleType="centerCrop" />
 
-        <!-- Infos du livre -->
+        <!-- Infos texte (prend tout l'espace restant) -->
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:orientation="vertical">
 
             <TextView
@@ -34,9 +35,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Titre du livre"
+                android:textColor="#1A0533"
                 android:textSize="17sp"
-                android:textStyle="bold"
-                android:textColor="#1A0533"/>
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/tvAuteurLivre"
@@ -44,8 +45,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="Auteur"
-                android:textSize="14sp"
-                android:textColor="#6C3FC5"/>
+                android:textColor="#6C3FC5"
+                android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/tvIsbnLivre"
@@ -53,25 +54,66 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="ISBN"
+                android:textColor="#9E9E9E"
+                android:textSize="12sp" />
+
+            <!--
+                CORRECTION bug 4 : une seule déclaration de tvAnneeLivre.
+                L'ancien fichier avait cet ID deux fois, ce qui causait
+                un comportement indéfini (l'adapter ne trouvait jamais la bonne vue).
+            -->
+            <TextView
+                android:id="@+id/tvAnneeLivre"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textColor="#666666"
                 android:textSize="12sp"
-                android:textColor="#9E9E9E"/>
+                android:visibility="gone" />
 
             <TextView
                 android:id="@+id/tvDisponibilite"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
+                android:background="@drawable/badge_arrondi"
                 android:paddingStart="14dp"
                 android:paddingTop="6dp"
                 android:paddingEnd="14dp"
                 android:paddingBottom="6dp"
                 android:text="Disponible"
-                android:textStyle="bold"
-                android:textSize="12sp"
                 android:textColor="@android:color/white"
-                android:background="@drawable/badge_arrondi"/>
+                android:textSize="12sp"
+                android:textStyle="bold" />
 
         </LinearLayout>
+
+        <!-- Icônes modifier / supprimer -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageButton
+                android:id="@+id/btnModifierItem"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@android:color/transparent"
+                android:contentDescription="Modifier"
+                android:src="@android:drawable/ic_menu_edit" />
+
+            <ImageButton
+                android:id="@+id/btnSupprimerItem"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginTop="8dp"
+                android:background="@android:color/transparent"
+                android:contentDescription="Supprimer"
+                android:src="@android:drawable/ic_menu_delete" />
+
+        </LinearLayout>
+
     </LinearLayout>
 
 </androidx.cardview.widget.CardView>
